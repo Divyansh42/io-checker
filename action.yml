@@ -26,13 +26,16 @@ runs:
         echo "::set-output name=exit-code::$(echo $?)"
       shell: bash
     - run: |
-        if [[ !${{ steps.check-file-diff.outputs.exit-code }} ]];
-        then
+        function run(){
           echo "----- Contents of ${{ inputs.generated_filename }} -----"
           cat '${{ inputs.generated_filename }}'
           echo "----- End Contents ----"
           echo "---- Contents of ${{ inputs.committed_filename }} -----"
           cat '${{ inputs.committed_filename }}'
           echo "---- End Contents -----"
-        fi
+        }
+
+        echo ${{ steps.check-file-diff.outputs.exit-code }}
+        [[ ${{ steps.check-file-diff.outputs.exit-code }} ]] && \
+        echo "All good!" || run
       shell: bash
