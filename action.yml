@@ -1,41 +1,10 @@
 name: 'Check inputs-outputs'
 description: 'Check input and output enums'
 inputs:
-  committed_filename: 
-    description: 'Path to file containing generated input and output that is committed'
-    required: false
-    default: 'src/generated/inputs-outputs.ts'
-  generated_filename:
-    description: 'Name of the file to be generated to check for inputs and outputs'
-    required: false
-    default: 'action-generated-ins-outs.ts'
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-id }}
-runs:
-  using: "composite"
-  steps:
-    - run: npm ci
-      shell: bash
-    - run: npx action-io-generator --outFile='${{ inputs.generated_filename }}'
-      shell: bash
-    - id: check-file-diff
-      run: | 
-        git --no-pager diff --no-index --exit-code '${{ inputs.committed_filename }}' '${{ inputs.generated_filename }}'
-        echo "::set-output name=exit-code::$(echo $?)"
-      shell: bash
-    - run: |
-        function run(){
-          echo "----- Contents of ${{ inputs.generated_filename }} -----"
-          cat '${{ inputs.generated_filename }}'
-          echo "----- End Contents ----"
-          echo "---- Contents of ${{ inputs.committed_filename }} -----"
-          cat '${{ inputs.committed_filename }}'
-          echo "---- End Contents -----"
-        }
+  io_file: 
+    description: 'Path to file containing inputs and outputs'
+    required: true
 
-        echo ${{ steps.check-file-diff.outputs.exit-code }}
-        [[ ${{ steps.check-file-diff.outputs.exit-code }} ]] && \
-        echo "All good!" || run
-      shell: bash
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
