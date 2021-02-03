@@ -4,30 +4,31 @@ set -o pipefail
 
 # Define a timestamp function
 timestamp() {
-  date +"%T" # current time
+  date +"%s"
 }
 
 npm ci
 
-file_name="action-generated-ins-outs ${timestamp} .ts"
-echo $file_name
+file_name="action-generated-ins-outs-$(timestamp).ts"
+echo "Generating inputs and outputs enum in $file_name"
+
 npx action-io-generator --outFile=$file_name
 
+git --no-pager diff --no-index --exit-code $INPUT_IO_FILE $file_name || true
 
-git --no-pager diff --no-index --exit-code $INPUT_IO_FILE $file_name
-
-function run(){
-    echo "----- Contents of ${{ inputs.generated_filename }} -----"
-    cat '${{ inputs.generated_filename }}'
+function logFiles(){
+    echo "----- Contents of $file_name -----"
+    cat $file_name
     echo "----- End Contents ----"
-    echo "---- Contents of ${{ inputs.committed_filename }} -----"
-    cat '${{ inputs.committed_filename }}'
+    echo "---- Contents of $INPUT_IO_FILE -----"
+    cat $INPUT_IO_FILE
     echo "---- End Contents -----"
-}
+}   
 
 if [[ $? -eq 0 ]]; then
-    echo "Inputs and Outputs are correctly configured"
+    echo "✅ Inputs and Outputs are configured correctly."
 else
+    echo "❌ Inputs and Outputs are not configured correctly."
     logFiles
+    exit 1
 fi
-
